@@ -1,0 +1,197 @@
+#!/usr/bin/env python2
+
+"""
+update-repos
+------------
+
+A small script that updates all repositories
+in a given directory to the newest version.
+"""
+
+__version__ = "0.0.1"
+
+
+import argparse
+import os
+import subprocess
+import sys
+
+
+class Repo(object):
+
+    def __init__(self, path, dry, log):
+        self._path = path
+        self._dry = dry
+        self._log = log
+
+    @property
+    def path(self):
+        return self._path
+
+    def run(self, *cmds):
+        for cmd in cmds:
+            return_code = self.run_single(cmd)
+            if return_code not in (0, None):
+                log.command_failed(return_code)
+                break
+
+    def run_single(self, cmd):
+        self._log.command(" ".join(cmd))
+        if not self._dry:
+            proc = subprocess.Popen(
+                args=cmd,
+                stdout=self._log.get_stream(),
+                stderr=self._log.get_stream(),
+                cwd=self._path)
+            proc.wait()
+            self._log.get_stream().flush()
+            return proc.returncode
+
+    def has_subdir(self, subdir):
+        return os.path.isdir(os.path.join(self._path, subdir))
+
+
+class SupportBase(object):
+
+    @classmethod
+    def select(cls, repo_path):
+        return [
+            inst for inst in [
+                subcls() for subcls in cls.__subclasses__()]
+            if inst.matches(repo_path)]
+
+
+class GitSupport(SupportBase):
+    name = "git"
+
+    def matches(self, repo):
+        return repo.has_subdir(".git")\
+            and not repo.has_subdir(".git/svn")
+
+    def update(self, repo):
+        repo.run(
+            ["git", "fetch"],
+            ["git", "rebase"])
+
+
+class GitSvnSupport(SupportBase):
+    name = "git-svn"
+
+    def matches(self, repo):
+        return repo.has_subdir(".git")\
+            and repo.has_subdir(".git/svn")
+
+    def update(self, repo):
+        repo.run(
+            ["git", "svn", "fetch"],
+            ["git", "svn", "rebase"])
+
+
+class BareGitSupport(SupportBase):
+    name = "git-bare"
+
+    def matches(self, repo):
+        return sorted(os.listdir(repo.path)) ==\
+            ['HEAD', 'branches', 'config', 'description',
+            'hooks', 'info', 'objects', 'refs']
+
+    def update(self, repo):
+        repo.run(["git", "fetch"])
+
+
+class SvnSupport(SupportBase):
+    name = "svn"
+
+    def matches(self, repo):
+        return repo.has_subdir(".svn")
+
+    def update(self, repo):
+        repo.run(["svn", "update"])
+
+
+class BzrSupport(SupportBase):
+    name = "bzr"
+
+    def matches(self, repo):
+        return repo.has_subdir(".bzr")
+
+    def update(self, repo):
+        repo.run(["bzr", "update"])
+
+
+class HgSupport(SupportBase):
+    name = "hg"
+
+    def matches(self, repo):
+        return repo.has_subdir(".hg")
+
+    def update(self, repo):
+        repo.run(
+            ["hg", "pull"],
+            ["hg", "update"])
+
+
+class Log(object):
+    DEFAULT_FMT = "%s"
+    RESET_FMT = "%s\x1b[0m"
+    BLUE_FMT = RESET_FMT % "\x1b[1;34m%s"
+    RED_FMT = RESET_FMT % "\x1b[1;31m%s"
+    GREEN_FMT = RESET_FMT % "\x1b[1;32m%s"
+    YELLOW_FMT = RESET_FMT % "\x1b[1;33m%s"
+
+    def repo_ok(self, repo, repo_type):
+        print self.GREEN_FMT % ("%s" % (
+            repo.path))
+
+    def repo_unsupported(self, repo):
+        print self.RED_FMT % ("%s: unsupported" % (
+            repo.path))
+
+    def repo_ambiguous(self, repo, repo_types):
+        print self.RED_FMT % ("%s: ambiguous: %s" % (
+            repo.path, ", ".join(t.name for t in repo_types)))
+
+    def command(self, cmd):
+        print "> " + self.YELLOW_FMT % cmd
+
+    def interrupted(self):
+        print self.YELLOW_FMT % "interrupted!"
+
+    def get_stream(self):
+        return sys.stdout
+
+
+def main(args):
+    par = argparse.ArgumentParser(
+        description='Update repositories in a directory')
+    par.add_argument('paths', metavar='DIRECTORY', type=str, nargs='+',
+        help='one or more directories to scan for repositories')
+    par.add_argument('--dry-run', action="store_true", default=False,
+        help="don't actually perform any updates")
+    args = par.parse_args()
+    run(args.paths, args.dry_run, Log())
+
+
+def run(paths, dry_run, log):
+    for path in paths:
+        for subdir in os.listdir(path):
+            repo_path = os.path.join(path, subdir)
+            if not os.path.isdir(repo_path) or subdir.startswith("."):
+                continue
+            repo = Repo(repo_path, dry_run, log)
+            classes = SupportBase.select(repo)
+            if len(classes) < 1:
+                log.repo_unsupported(repo)
+            elif len(classes) > 1:
+                log.repo_ambiguous(repo, classes)
+            else:
+                log.repo_ok(repo, classes[0])
+                try:
+                    classes[0].update(repo)
+                except KeyboardInterrupt, e:
+                    log.interrupted()
+
+
+if __name__ == '__main__':
+    main(sys.argv[1:])
+
