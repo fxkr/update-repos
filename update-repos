@@ -163,17 +163,6 @@ class Log(object):
         return sys.stdout
 
 
-def main(args):
-    par = argparse.ArgumentParser(
-        description='Update repositories in a directory')
-    par.add_argument('paths', metavar='DIRECTORY', type=str, nargs='+',
-        help='one or more directories to scan for repositories')
-    par.add_argument('--dry-run', action="store_true", default=False,
-        help="don't actually perform any updates")
-    args = par.parse_args()
-    run(args.paths, args.dry_run, Log())
-
-
 def run(paths, dry_run, log):
     for path in paths:
         for subdir in os.listdir(path):
@@ -192,6 +181,17 @@ def run(paths, dry_run, log):
                     classes[0].update(repo)
                 except KeyboardInterrupt, e:
                     log.interrupted()
+
+
+def main(args):
+    par = argparse.ArgumentParser(
+        description='Update repositories in a directory')
+    par.add_argument('paths', metavar='DIRECTORY', type=str, nargs='+',
+        help='one or more directories to scan for repositories')
+    par.add_argument('--dry-run', action="store_true", default=False,
+        help="don't actually perform any updates")
+    args = par.parse_args()
+    run(args.paths, args.dry_run, Log())
 
 
 if __name__ == '__main__':
