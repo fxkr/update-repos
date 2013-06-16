@@ -8,7 +8,7 @@ setup(
     author_email='felix.kaiser@fxkr.net',
     long_description=open('README.rst').read(),
     license=open('LICENSE').read(),
-    url='',
+    url='https://github.com/fxkr/update-repos',
     packages=[],
     scripts=['update-repos'])
 
