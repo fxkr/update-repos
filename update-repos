@@ -50,6 +50,10 @@ class Repo(object):
     def has_subdir(self, *subdir_parts):
         return os.path.isdir(os.path.join(self._path, *subdir_parts))
 
+    def has_files(self, expected_files):
+        return sorted(os.listdir(self.path))\
+            == sorted(expected_files)
+
 
 class SupportBase(object):
 
@@ -91,9 +95,9 @@ class BareGitSupport(SupportBase):
     name = "git-bare"
 
     def matches(self, repo):
-        return sorted(os.listdir(repo.path)) ==\
-            ['HEAD', 'branches', 'config', 'description',
-            'hooks', 'info', 'objects', 'refs']
+        return repo.has_files([
+            'HEAD', 'branches', 'config', 'description',
+            'hooks', 'info', 'objects', 'refs'])
 
     def update(self, repo):
         repo.run(["git", "fetch"])
