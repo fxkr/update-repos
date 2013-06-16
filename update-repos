@@ -47,8 +47,8 @@ class Repo(object):
             self._log.get_stream().flush()
             return proc.returncode
 
-    def has_subdir(self, subdir):
-        return os.path.isdir(os.path.join(self._path, subdir))
+    def has_subdir(self, *subdir_parts):
+        return os.path.isdir(os.path.join(self._path, *subdir_parts))
 
 
 class SupportBase(object):
@@ -66,7 +66,7 @@ class GitSupport(SupportBase):
 
     def matches(self, repo):
         return repo.has_subdir(".git")\
-            and not repo.has_subdir(".git/svn")
+            and not repo.has_subdir(".git", "svn")
 
     def update(self, repo):
         repo.run(
@@ -79,7 +79,7 @@ class GitSvnSupport(SupportBase):
 
     def matches(self, repo):
         return repo.has_subdir(".git")\
-            and repo.has_subdir(".git/svn")
+            and repo.has_subdir(".git", "svn")
 
     def update(self, repo):
         repo.run(
