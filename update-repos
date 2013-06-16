@@ -144,12 +144,10 @@ class Log(object):
     YELLOW_FMT = RESET_FMT % "\x1b[1;33m%s"
 
     def repo_ok(self, repo, repo_type):
-        print self.GREEN_FMT % ("%s" % (
-            repo.path))
+        print self.GREEN_FMT % ("%s" % (repo.path))
 
     def repo_unsupported(self, repo):
-        print self.RED_FMT % ("%s: unsupported" % (
-            repo.path))
+        print self.RED_FMT % ("%s: unsupported" % (repo.path))
 
     def repo_ambiguous(self, repo, repo_types):
         print self.RED_FMT % ("%s: ambiguous: %s" % (
