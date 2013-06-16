@@ -8,7 +8,7 @@ A small script that updates all repositories
 in a given directory to the newest version.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 
 import argparse
