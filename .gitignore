@@ -4,3 +4,10 @@
 *~
 
 *.pyc
+MANIFEST
+dist
+build
+__pycache__
+
+PKGBUILD
+
