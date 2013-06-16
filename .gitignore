@@ -9,5 +9,9 @@ dist
 build
 __pycache__
 
-PKGBUILD
+pkg
+src
+update-repos-git
+*.pkg.tar.xz
+*.src.tar.gz
 
