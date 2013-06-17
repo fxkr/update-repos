@@ -201,7 +201,7 @@ def main(args):
     par = argparse.ArgumentParser(
         description='Update repositories in a directory.',
         epilog="Supported repository types: " + ", ".join(SupportBase.get_names()))
-    par.add_argument('paths', metavar='DIRECTORY', type=str, nargs='+',
+    par.add_argument('paths', metavar='DIRECTORY', type=directory_argtype, nargs='+',
         help='one or more directories to scan for repositories')
     par.add_argument('--dry-run', action="store_true", default=False,
         help="don't actually perform any updates")
@@ -210,6 +210,11 @@ def main(args):
         help="types of repositories to update (default: all)")
     args = par.parse_args()
     run(args.paths, args.dry_run, args.types, Log())
+
+def directory_argtype(value):
+    if not os.path.isdir(value):
+        raise argparse.ArgumentTypeError("not a directory: %s" % value)
+    return value
 
 def vcs_list_argtype(value):
     if value == "all":
