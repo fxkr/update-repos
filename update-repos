@@ -205,6 +205,7 @@ def main(args):
     par = argparse.ArgumentParser(
         description='Update repositories in a directory.',
         epilog="Supported repository types: " + ", ".join(SupportBase.get_names()))
+    par.add_argument('-V', '--version', action='version', version=__version__)
     par.add_argument('paths', metavar='DIRECTORY', type=directory_argtype, nargs='+',
         help='one or more directories to scan for repositories')
     par.add_argument('--dry-run', action="store_true", default=False,
