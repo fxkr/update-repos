@@ -64,6 +64,10 @@ class SupportBase(object):
                 subcls() for subcls in cls.__subclasses__()]
             if inst.matches(repo_path)]
 
+    @classmethod
+    def get_names(cls):
+        return set(c.name for c in cls.__subclasses__())
+
 
 class GitSupport(SupportBase):
     name = "git"
@@ -188,7 +192,8 @@ def run(paths, dry_run, log):
 
 def main(args):
     par = argparse.ArgumentParser(
-        description='Update repositories in a directory')
+        description='Update repositories in a directory',
+        epilog="Supported VCS: " + ", ".join(SupportBase.get_names()))
     par.add_argument('paths', metavar='DIRECTORY', type=str, nargs='+',
         help='one or more directories to scan for repositories')
     par.add_argument('--dry-run', action="store_true", default=False,
