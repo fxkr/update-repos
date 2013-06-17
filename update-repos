@@ -175,26 +175,30 @@ class Log(object):
         return sys.stdout
 
 
-def run(paths, dry_run, vcs_names, log):
-    for path in paths:
-        for subdir in os.listdir(path):
-            repo_path = os.path.join(path, subdir)
-            if not os.path.isdir(repo_path) or subdir.startswith("."):
-                continue
-            repo = Repo(repo_path, dry_run, log)
-            classes = SupportBase.select(repo)
-            if len(classes) < 1:
-                log.repo_unsupported(repo)
-            elif len(classes) > 1:
-                log.repo_ambiguous(repo, classes)
-            elif classes[0].name not in vcs_names:
-                log.repo_skipped(repo, classes)
-            else:
-                log.repo_ok(repo, classes[0])
-                try:
-                    classes[0].update(repo)
-                except KeyboardInterrupt, e:
-                    log.interrupted()
+def run(paths, is_repo, dry_run, vcs_names, log):
+
+    if not is_repo: # but contains repos
+        paths = [os.path.join(base_dir, sub_dir)
+            for base_dir in paths
+            for sub_dir in os.listdir(base_dir)
+            if not sub_dir.startswith(".")
+            and os.path.isdir(os.path.join(base_dir, sub_dir))]
+
+    for repo_path in paths:
+        repo = Repo(repo_path, dry_run, log)
+        classes = SupportBase.select(repo)
+        if len(classes) < 1:
+            log.repo_unsupported(repo)
+        elif len(classes) > 1:
+            log.repo_ambiguous(repo, classes)
+        elif classes[0].name not in vcs_names:
+            log.repo_skipped(repo, classes)
+        else:
+            log.repo_ok(repo, classes[0])
+            try:
+                classes[0].update(repo)
+            except KeyboardInterrupt, e:
+                log.interrupted()
 
 
 def main(args):
@@ -208,8 +212,10 @@ def main(args):
     par.add_argument('-t', '--type', dest="types", action="store",
         metavar="x,y", default="all", type=vcs_list_argtype,
         help="types of repositories to update (default: all)")
+    par.add_argument('-r', '--repo', dest="is_repo", action="store_true",
+        help="the directories don't contain repos, they are repos")
     args = par.parse_args()
-    run(args.paths, args.dry_run, args.types, Log())
+    run(args.paths, args.is_repo, args.dry_run, args.types, Log())
 
 def directory_argtype(value):
     if not os.path.isdir(value):
