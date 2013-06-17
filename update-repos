@@ -146,6 +146,7 @@ class Log(object):
     RED_FMT = RESET_FMT % "\x1b[1;31m%s"
     GREEN_FMT = RESET_FMT % "\x1b[1;32m%s"
     YELLOW_FMT = RESET_FMT % "\x1b[1;33m%s"
+    GRAY_FMT = RESET_FMT % "\x1b[0;37m%s"
 
     def repo_ok(self, repo, repo_type):
         print self.GREEN_FMT % ("%s: %s" % (repo.path, repo_type.name))
@@ -155,6 +156,10 @@ class Log(object):
 
     def repo_ambiguous(self, repo, repo_types):
         print self.RED_FMT % ("%s: ambiguous: %s" % (
+            repo.path, ", ".join(t.name for t in repo_types)))
+
+    def repo_skipped(self, repo, repo_types):
+        print self.GRAY_FMT % ("%s: skipped: %s" % (
             repo.path, ", ".join(t.name for t in repo_types)))
 
     def command(self, cmd):
@@ -170,7 +175,7 @@ class Log(object):
         return sys.stdout
 
 
-def run(paths, dry_run, log):
+def run(paths, dry_run, vcs_names, log):
     for path in paths:
         for subdir in os.listdir(path):
             repo_path = os.path.join(path, subdir)
@@ -182,6 +187,8 @@ def run(paths, dry_run, log):
                 log.repo_unsupported(repo)
             elif len(classes) > 1:
                 log.repo_ambiguous(repo, classes)
+            elif classes[0].name not in vcs_names:
+                log.repo_skipped(repo, classes)
             else:
                 log.repo_ok(repo, classes[0])
                 try:
@@ -192,15 +199,27 @@ def run(paths, dry_run, log):
 
 def main(args):
     par = argparse.ArgumentParser(
-        description='Update repositories in a directory',
-        epilog="Supported VCS: " + ", ".join(SupportBase.get_names()))
+        description='Update repositories in a directory.',
+        epilog="Supported repository types: " + ", ".join(SupportBase.get_names()))
     par.add_argument('paths', metavar='DIRECTORY', type=str, nargs='+',
         help='one or more directories to scan for repositories')
     par.add_argument('--dry-run', action="store_true", default=False,
         help="don't actually perform any updates")
+    par.add_argument('-t', '--type', dest="types", action="store",
+        metavar="x,y", default="all", type=vcs_list_argtype,
+        help="types of repositories to update (default: all)")
     args = par.parse_args()
-    run(args.paths, args.dry_run, Log())
+    run(args.paths, args.dry_run, args.types, Log())
 
+def vcs_list_argtype(value):
+    if value == "all":
+        return SupportBase.get_names()
+    result = [] # can't use yield because we have to fail early
+    for name in value.split(","):
+        if name not in SupportBase.get_names():
+            raise argparse.ArgumentTypeError("unsupported VCS: %s" % name)
+        result.append(name)
+    return result
 
 if __name__ == '__main__':
     main(sys.argv[1:])
