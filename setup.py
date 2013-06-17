@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='update-repos',
-    version='0.1.1',
+    version='0.1.2',
     description='Update all repositories in a directory',
     author='Felix Kaiser',
     author_email='felix.kaiser@fxkr.net',
