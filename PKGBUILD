@@ -28,5 +28,6 @@ build() {
 package() {
   cd "$srcdir/update-repos-git"
   python2 setup.py install --optimize=1 --root="$pkgdir"
+  install -Dm644 update-repos.1 "$pkgdir/usr/share/man/man1/update-repos.1"
 }
 

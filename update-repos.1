@@ -1,0 +1,33 @@
+.TH update-repos 1 "30 Sep 2013" "update-repos 0.1.2" "update-repos Manual"
+.SH NAME
+update-repos - update all repositories in a directory
+.SH SYNOPSIS
+update-repos DIRECTORY...
+.SH DESCRIPTION
+.PP
+Update all repositories in a directory, no matter which version control
+system is being used.
+.PP
+Very useful if you keep a large collection of
+source code repositories of various projects.
+.PP
+Supported repository types:
+.PP
+  - git (http://git-scm.com/, incl. bare and git-svn repos)
+  - svn (https://subversion.apache.org/)
+  - bzr (http://bazaar.canonical.com/)
+  - hg (http://mercurial.selenic.com/)
+.SH OPTIONS
+positional arguments:
+  DIRECTORY           one or more directories to scan for repositories
+
+optional arguments:
+  -h, --help          show this help message and exit
+  -V, --version       show program's version number and exit
+  --dry-run           don't actually run any commands
+  -t x,y, --type x,y  types of repositories to update (default: all)
+                      available types: git, git-bare, git-svn, svn, bzr, hg
+  -r, --repo          the directories don't contain repos, they are repos
+.SH AUTHOR
+Felix Kaiser <felix.kaiser@fxkr.net>
+
