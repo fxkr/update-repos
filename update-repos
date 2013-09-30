@@ -209,7 +209,7 @@ def main(args):
     par.add_argument('paths', metavar='DIRECTORY', type=directory_argtype, nargs='+',
         help='one or more directories to scan for repositories')
     par.add_argument('--dry-run', action="store_true", default=False,
-        help="don't actually perform any updates")
+        help="don't actually run any commands")
     par.add_argument('-t', '--type', dest="types", action="store",
         metavar="x,y", default="all", type=vcs_list_argtype,
         help="types of repositories to update (default: all)")
