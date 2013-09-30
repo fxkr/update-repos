@@ -1,7 +1,7 @@
 # Contributor: Felix Kaiser <felix.kaiser@fxkr.net>
 #
-# @Git users: This is a PKGBUILD for Arch Linux.
-# @Arch users: This file is included in the git repo.
+# @Git users: This is a package build description file for Arch Linux.
+# @Arch users: This file is included in the projects git repository.
 
 pkgname=update-repos-git
 pkgver=0.1.2
