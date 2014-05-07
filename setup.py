@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='update-repos',
-    version='0.1.3',
+    version='0.2.0',
     description='Easily update multiple git/hg/svn/... repositories',
     author='Felix Kaiser',
     author_email='felix.kaiser@fxkr.net',

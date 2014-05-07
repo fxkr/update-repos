@@ -4,7 +4,7 @@
 # @Arch users: This file is included in the projects git repository.
 
 pkgname=update-repos-git
-pkgver=0.1.3
+pkgver=0.2.0
 pkgrel=1
 pkgdesc="Easily update multiple git/hg/svn/... repositories"
 url='https://github.com/fxkr/update-repos'
