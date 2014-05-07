@@ -6,7 +6,7 @@
 pkgname=update-repos-git
 pkgver=0.1.3
 pkgrel=1
-pkgdesc="Updates all source code repositories in a directory"
+pkgdesc="Easily update multiple git/hg/svn/... repositories"
 url='https://github.com/fxkr/update-repos'
 license=('BSD')
 depends=('python2')

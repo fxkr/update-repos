@@ -1,13 +1,13 @@
 update-repos
 ============
 
-Updates all repositories in a directory.
+Easily update multiple git/hg/svn/... repositories.
 
-Usage::
+Usage: To update all repositories in the current directory, use::
 
-  update-repos <directory>
+  update-repos *
 
-Supported VCS:
+Currently supported VCS:
 
 * git (http://git-scm.com/)
 * git-svn (part of git)

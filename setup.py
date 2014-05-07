@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
     name='update-repos',
     version='0.1.3',
-    description='Update all repositories in a directory',
+    description='Easily update multiple git/hg/svn/... repositories',
     author='Felix Kaiser',
     author_email='felix.kaiser@fxkr.net',
     long_description=open('README.rst').read(),

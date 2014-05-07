@@ -4,8 +4,7 @@
 update-repos
 ------------
 
-A small script that updates all repositories
-in a given directory to the newest version.
+Easily update multiple git/hg/svn/... repositories.
 """
 
 __version__ = "0.1.3"
@@ -47,6 +46,9 @@ class Repo(object):
             self._log.get_stream().flush()
             return proc.returncode
 
+    def is_dir(self):
+        return os.path.isdir(self._path)
+
     def has_subdir(self, *subdir_parts):
         return os.path.isdir(os.path.join(self._path, *subdir_parts))
 
@@ -73,7 +75,8 @@ class GitSupport(SupportBase):
     name = "git"
 
     def matches(self, repo):
-        return repo.has_subdir(".git")\
+        return repo.is_dir()\
+            and repo.has_subdir(".git")\
             and not repo.has_subdir(".git", "svn")
 
     def update(self, repo):
@@ -86,7 +89,8 @@ class GitSvnSupport(SupportBase):
     name = "git-svn"
 
     def matches(self, repo):
-        return repo.has_subdir(".git")\
+        return repo.is_dir()\
+            and repo.has_subdir(".git")\
             and repo.has_subdir(".git", "svn")
 
     def update(self, repo):
@@ -99,7 +103,8 @@ class BareGitSupport(SupportBase):
     name = "git-bare"
 
     def matches(self, repo):
-        return repo.has_files([
+        return repo.is_dir()\
+            and repo.has_files([
             'HEAD', 'branches', 'config', 'description',
             'hooks', 'info', 'objects', 'refs'])
 
@@ -111,7 +116,8 @@ class SvnSupport(SupportBase):
     name = "svn"
 
     def matches(self, repo):
-        return repo.has_subdir(".svn")
+        return repo.is_dir()\
+            and repo.has_subdir(".svn")
 
     def update(self, repo):
         repo.run(["svn", "update"])
@@ -121,7 +127,8 @@ class BzrSupport(SupportBase):
     name = "bzr"
 
     def matches(self, repo):
-        return repo.has_subdir(".bzr")
+        return repo.is_dir()\
+            and repo.has_subdir(".bzr")
 
     def update(self, repo):
         repo.run(["bzr", "update"])
@@ -131,7 +138,8 @@ class HgSupport(SupportBase):
     name = "hg"
 
     def matches(self, repo):
-        return repo.has_subdir(".hg")
+        return repo.is_dir()\
+            and repo.has_subdir(".hg")
 
     def update(self, repo):
         repo.run(
@@ -175,15 +183,7 @@ class Log(object):
         return sys.stdout
 
 
-def run(paths, is_repo, dry_run, vcs_names, log):
-
-    if not is_repo: # but contains repos
-        paths = [os.path.join(base_dir, sub_dir)
-            for base_dir in paths
-            for sub_dir in os.listdir(base_dir)
-            if not sub_dir.startswith(".")
-            and os.path.isdir(os.path.join(base_dir, sub_dir))]
-
+def run(paths, dry_run, vcs_names, log):
     for repo_path in paths:
         repo = Repo(repo_path, dry_run, log)
         classes = SupportBase.select(repo)
@@ -206,21 +206,19 @@ def main(args):
         description='Update repositories in a directory.',
         epilog="Supported repository types: " + ", ".join(SupportBase.get_names()))
     par.add_argument('-V', '--version', action='version', version=__version__)
-    par.add_argument('paths', metavar='DIRECTORY', type=directory_argtype, nargs='+',
+    par.add_argument('paths', metavar='DIRECTORY', type=exists_argtype, nargs='+',
         help='one or more directories to scan for repositories')
     par.add_argument('--dry-run', action="store_true", default=False,
         help="don't actually run any commands")
     par.add_argument('-t', '--type', dest="types", action="store",
         metavar="x,y", default="all", type=vcs_list_argtype,
         help="types of repositories to update (default: all)")
-    par.add_argument('-r', '--repo', dest="is_repo", action="store_true",
-        help="the directories don't contain repos, they are repos")
     args = par.parse_args()
-    run(args.paths, args.is_repo, args.dry_run, args.types, Log())
+    run(args.paths, args.dry_run, args.types, Log())
 
-def directory_argtype(value):
-    if not os.path.isdir(value):
-        raise argparse.ArgumentTypeError("not a directory: %s" % value)
+def exists_argtype(value):
+    if not os.path.exists(value):
+        raise argparse.ArgumentTypeError("doesn't exist: %s" % value)
     return value
 
 def vcs_list_argtype(value):
