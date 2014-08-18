@@ -27,21 +27,22 @@ class Repo(object):
     def path(self):
         return self._path
 
-    def run(self, *cmds):
+    def run(self, *cmds, **kwargs):
         for cmd in cmds:
-            return_code = self.run_single(cmd)
+            return_code = self.run_single(cmd, kwargs.get('env'))
             if return_code not in (0, None):
                 self._log.command_failed(return_code)
                 break
 
-    def run_single(self, cmd):
+    def run_single(self, cmd, env=None):
         self._log.command(" ".join(cmd))
         if not self._dry:
             proc = subprocess.Popen(
                 args=cmd,
                 stdout=self._log.get_stream(),
                 stderr=self._log.get_stream(),
-                cwd=self._path)
+                cwd=self._path,
+                env=env)
             proc.wait()
             self._log.get_stream().flush()
             return proc.returncode
@@ -55,6 +56,13 @@ class Repo(object):
     def has_files(self, expected_files):
         return sorted(os.listdir(self.path))\
             == sorted(expected_files)
+
+    def has_files_in(self, subdir, expected_files):
+        return set(expected_files).issubset(
+            set(os.listdir(os.path.join(self.path, subdir))))
+
+    def read(self, path):
+        return open(os.path.join(self.path, path), "rb").read()
 
 
 class SupportBase(object):
@@ -145,6 +153,24 @@ class HgSupport(SupportBase):
         repo.run(
             ["hg", "pull"],
             ["hg", "update"])
+
+
+class CvsSupport(SupportBase):
+    name = "cvs"
+
+    def matches(self, repo):
+        return repo.is_dir()\
+            and repo.has_subdir("CVS")\
+            and repo.has_files_in("CVS", [
+                "Entries", "Repository", "Root"])
+
+    def update(self, repo):
+        repo.run(
+            ["cvs", "-q", "update"],
+            env={
+                "CVS_RSH": "ssh",
+                "CVSROOT": repo.read("CVS/Root")
+            })
 
 
 class Log(object):

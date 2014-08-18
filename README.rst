@@ -14,6 +14,7 @@ Currently supported VCS:
 * svn (https://subversion.apache.org/)
 * bzr (http://bazaar.canonical.com/)
 * hg (http://mercurial.selenic.com/)
+* cvs (http://www.nongnu.org/cvs/)
 
 Misc:
 
