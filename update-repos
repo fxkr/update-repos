@@ -54,8 +54,8 @@ class Repo(object):
         return os.path.isdir(os.path.join(self._path, *subdir_parts))
 
     def has_files(self, expected_files):
-        return sorted(os.listdir(self.path))\
-            == sorted(expected_files)
+        return set(expected_files).issubset(
+            set(os.listdir(self.path)))
 
     def has_files_in(self, subdir, expected_files):
         return set(expected_files).issubset(
